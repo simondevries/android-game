@@ -1,21 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native';
+import React, {Component, useState, useEffect } from 'react';
+import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
+import WorldWrapper from './WorldWrapper';
+const windowHeight = Dimensions.get('window').height;
+const windowWidth = Dimensions.get('window').width;
+const circleRadius = 30;
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+function App() {
+
+return (
+    <View style={{flex: 1}}>
+      {/* <Multitap/> */}
+      {/* <RenderMap units={units}/> */}
+      <WorldWrapper/>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
+
