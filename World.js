@@ -3,6 +3,7 @@ import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import VillagerTile from './VillagerTile';
+import { getXYPositionsFromPath } from './helpers';
 
 export const tileSize = 30;
 
@@ -178,24 +179,32 @@ class Unit {
 
   onTick() { };
 
-  move(coords) {
-    alert(`yay for ${JSON.stringify(coords)}`)
-  };
 }
 
 class Person extends Unit {
 
-  constructor(hp, x, y, velocity, strength) {
-    super(hp, x, y, velocity);
+  constructor(hp, x, y, velocity, strength, path) {
+    super(hp, x, y, velocity, path);
     this.strength = strength;
+    this.path = path;
   }
 
   assignment() {
     console.log('do work')
   }
+
+  move(coords) {
+    this.path = getXYPositionsFromPath(coords)   
+    alert(JSON.stringify(this.path))
+  };
+
+  processMove(){
+
+  }
 }
 
 class Villager extends Person {
+  
 }
 
 class Building extends Unit {
@@ -271,27 +280,27 @@ function initUnits(){
           u.push(new Food(1,x,y,new Velocity(0,0)));
           break;
         case 5:
-          u.push(new Villager(1,x,y,new Velocity(0, 0), 1));
+          u.push(new Villager(1,x,y,new Velocity(0, 0), 1, []));
           break;
           break;
         case 6:
-          u.push(new Villager(1,x,y,new Velocity(0, 0), 1));
+          u.push(new Villager(1,x,y,new Velocity(0, 0), 1, []));
           break;
           break;
         case 7:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
           break;
           break;
         case 8:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
           break;
           break;
         case 9:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
           break;
           break;
         case 10:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
           break;
       }
 

@@ -70,7 +70,7 @@ export default class VillagerTile extends Component {
   handlePanResponderMove = (e, gestureState) => {
     // Keep track of how far we've moved in total (dx and dy)
 
-    this.path.push([gestureState.dx + (this.props.x * tileSize), gestureState.dx + (this.props.y * tileSize)])
+    this.path.push([gestureState.dy + (this.props.y * tileSize), gestureState.dx + (this.props.x * tileSize)])
     this.setState({
       offsetTop: gestureState.dy,
       offsetLeft: gestureState.dx,
