@@ -150,6 +150,9 @@ function processTick(units, setUnits) {
           unit = calculatePathToTarget(unit, units);
         }
 
+        // Could not compute path
+        if(!unit.path || unit.path.length === 0) {return unit;}
+
         const newX = unit.path[0][0];
         const newY = unit.path[0][1];
 
@@ -157,6 +160,7 @@ function processTick(units, setUnits) {
 
         if(hasCollision){
           unit.clearPath();
+          return unit;
         }
 
         unit.x = newX;

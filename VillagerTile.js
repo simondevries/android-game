@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Animated, Button,StyleSheet, Text, View ,Dimensions, PanResponder} from 'react-native';
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
-import { styles as WorldStyles, tileSize } from './World';
+import { styles as WorldStyles, tileSize, Point } from './World';
 // export default 
 // function VillagerTile(unit) {
 //   return  <View style={[styles.tile, styles.villager]}>
@@ -48,7 +48,7 @@ export default class VillagerTile extends Component {
     };
 
     return (
-      <View style={styles.container} onClick={()=>this.props.unit.setTarget([20,20])}>
+      <View style={styles.container} onClick={()=>this.props.unit.target = new Point(20,20)}>
         <View {...this.panResponder.panHandlers} style={[styles.square, style]}>
           <View style={styles.dude}/>
         </View>
