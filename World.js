@@ -82,8 +82,8 @@ function RenderMap({units}){
       world.push(Array(mapSize))
   }
 
-  return Array.from(Array(mapSize)).map((z, x) => {
-    const row = Array.from(Array(mapSize)).map((z1, y)=>{
+  return Array.from(Array(mapSize)).map((z, y) => {
+    const row = Array.from(Array(mapSize)).map((z1, x)=>{
         const unit = units.find(u => u.x === x && u.y === y);
         if (!unit) {
          return LandTile();
@@ -107,7 +107,7 @@ function RenderMap({units}){
           return <VillagerTile unit={unit} x={x} y={y}/>;
         }
     })
-
+// asd
     return <View style={styles.world}>
       <View style={styles.row}>
       {row}
@@ -119,11 +119,11 @@ function RenderMap({units}){
 
 function processTick(units, setUnits) {
   const u = units.map(unit => {
-      if(unit instanceof Villager){
+      if(unit instanceof Villager && unit.hasPath()){
         const vel = unit.velocity;
-
-        const newX = unit.x + vel.x;
-        const newY = unit.y + vel.y;
+        console.log('unit', JSON.stringify(unit))
+        const newX = unit.path[0][0];
+        const newY = unit.path[0][1];
 
         const hasCollision = units.some(u => (u.x) === newX && (u.y) === newY);
         // const hasCollision = units.some(u =>  (u.x + u.velocity.x) === newX && (u.y + u.velocity.y) === newY);
@@ -131,6 +131,7 @@ function processTick(units, setUnits) {
         if (!hasCollision){
           unit.x = newX;
           unit.y = newY;
+          unit.hasMoved();
         }
       }
 
@@ -184,7 +185,7 @@ class Unit {
 class Person extends Unit {
 
   constructor(hp, x, y, velocity, strength, path) {
-    super(hp, x, y, velocity, path);
+    super(hp, x, y, velocity);
     this.strength = strength;
     this.path = path;
   }
@@ -193,13 +194,16 @@ class Person extends Unit {
     console.log('do work')
   }
 
-  move(coords) {
-    this.path = getXYPositionsFromPath(coords)   
-    alert(JSON.stringify(this.path))
+  setPath(coords) {
+    this.path = getXYPositionsFromPath(coords, this.x, this.y)   
   };
 
-  processMove(){
+  hasMoved(){
+    this.path = this.path.splice(1, this.path.length - 1)
+  }
 
+  hasPath() {
+    return this.path && this.path.length >= 1;
   }
 }
 
