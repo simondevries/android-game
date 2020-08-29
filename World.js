@@ -2,11 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native';
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
+import VillagerTile from './VillagerTile';
 
+export const tileSize = 30;
 
-const tileSize = 30;
-
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   tile: {
     height: tileSize,
     width: tileSize,
@@ -80,12 +80,6 @@ function WaterTile() {
   return  <View style={[styles.tile, styles.water]}/>
 }
 
-function VillagerTile(unit) {
-  return  <View style={[styles.tile, styles.villager]}>
-<View style={[styles.tile, styles.dude]}/>
-  </View>
-}
-
 
 function RenderMap({units}){
 
@@ -116,7 +110,7 @@ function RenderMap({units}){
           return WaterTile();
         }
         if (unit instanceof Villager) {
-          return VillagerTile(unit);
+          return <VillagerTile unit={unit} x={x} y={y}/>;
         }
     })
 
@@ -151,7 +145,6 @@ function processTick(units, setUnits) {
       return unit;
   });
 
-  console.log(units.length);
   setUnits(u)
 }
 
@@ -283,11 +276,11 @@ function initUnits(){
           u.push(new Food(1,x,y,new Velocity(0,0)));
           break;
         case 5:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(0, 0), 1));
           break;
           break;
         case 6:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1));
+          u.push(new Villager(1,x,y,new Velocity(0, 0), 1));
           break;
           break;
         case 7:
