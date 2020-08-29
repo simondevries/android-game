@@ -5,6 +5,7 @@ import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'r
 import VillagerTile from './VillagerTile';
 import { getXYPositionsFromPath } from './helpers';
 import pathfinding from 'pathfinding';
+import generateMap from './mapGen';
 export const tileSize = 30;
 
 export const styles = StyleSheet.create({
@@ -49,7 +50,7 @@ export const styles = StyleSheet.create({
 
 
 
-const mapSize = 30;
+export const mapSize = 30;
 
 function LandTile() {
   return <View style={[styles.tile, styles.land]}/>
@@ -172,7 +173,7 @@ function processTick(units, setUnits) {
 
 export default function World() {
 
-  const [units, setUnits] = useState(initUnits());
+  const [units, setUnits] = useState(generateMap());
 
   useEffect(() => {
     window.setInterval(function(){
@@ -191,30 +192,24 @@ return (
   );
 }
 
-class Velocity{
-  constructor(x,y){
-    this.x = x;
-    this.y = y;
-  }
-}
 
-class Unit {
 
-  constructor(hp, x, y, velocity) {
+export class Unit {
+
+  constructor(hp, x, y) {
     this.hp = hp;
     this.x = x;
     this.y = y;
-    this.velocity = velocity;
   }
 
   onTick() { };
 
 }
 
-class Person extends Unit {
+export class Person extends Unit {
 
-  constructor(hp, x, y, velocity, strength, path, target) {
-    super(hp, x, y, velocity);
+  constructor(hp, x, y, strength, path, target) {
+    super(hp, x, y);
     this.strength = strength;
     this.path = path;
     this.target = target;
@@ -238,116 +233,61 @@ class Person extends Unit {
   }
 }
 
-class Villager extends Person {
+export class Villager extends Person {
   
 }
 
-class Building extends Unit {
+export class Building extends Unit {
 
 }
 
-class Resource extends Unit {
+export class Resource extends Unit {
 
-  constructor(hp, x, y, velocity, amount) {
-    super(hp, x, y, velocity);
+  constructor(hp, x, y, amount) {
+    super(hp, x, y);
     this.amount = amount;
   }
 
 }
 
-class Wood extends Resource {
-  constructor(hp, x, y, velocity) {
-    super(hp, x, y, velocity);
+export class Wood extends Resource {
+  constructor(hp, x, y) {
+    super(hp, x, y);
     this.resourceType = "WOOD";
   }
 }
 
-class Gold extends Resource {
-  constructor(hp, x, y, velocity) {
-    super(hp, x, y, velocity);
+export class Gold extends Resource {
+  constructor(hp, x, y) {
+    super(hp, x, y);
     this.resourceType = "GOLD";
   }
 }
 
-class Food extends Resource {
-  constructor(hp, x, y, velocity) {
-    super(hp, x, y, velocity);
+export class Food extends Resource {
+  constructor(hp, x, y) {
+    super(hp, x, y);
     this.resourceType = "FOOD";
   }
 }
 
-class Stone extends Resource {
-  constructor(hp, x, y, velocity) {
-    super(hp, x, y, velocity);
+export class Stone extends Resource {
+  constructor(hp, x, y) {
+    super(hp, x, y);
     this.resourceType = "STONE";
   }
 }
 
-class Water extends Resource {
-  constructor(hp, x, y, velocity) {
-    super(hp, x, y, velocity);
+export class Water extends Resource {
+  constructor(hp, x, y) {
+    super(hp, x, y);
     this.resourceType = "STONE";
   }
 }
 
-class Point {
+export class Point {
   constructor(x,y){
     this.x = x;
     this.y = y;
   }
-}
-
-function initUnits(){
-  let u = [];
-  
-  for(var x = 0; x<mapSize;x++){
-    for(var y = 0; y<mapSize;y++){
-
-      const rType = Math.floor(Math.random() * 100); 
-
-      switch(rType){
-        case 0:
-          u.push(new Stone(1,x,y,new Velocity(0,0)));
-          break;
-        case 1:
-          u.push(new Gold(1,x,y,new Velocity(0,0)));
-          break;
-        case 2:
-          u.push(new Water(1,x,y,new Velocity(0,0)));
-          break;
-        case 3:
-          u.push(new Wood(1,x,y,new Velocity(0,0)));
-          break;
-        case 4:
-          u.push(new Food(1,x,y,new Velocity(0,0)));
-          break;
-        case 5:
-          u.push(new Villager(1,x,y,new Velocity(0, 0), 1, []));
-          break;
-          break;
-        case 6:
-          u.push(new Villager(1,x,y,new Velocity(0, 0), 1, []));
-          break;
-          break;
-        case 7:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
-          break;
-          break;
-        case 8:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
-          break;
-          break;
-        case 9:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
-          break;
-          break;
-        case 10:
-          u.push(new Villager(1,x,y,new Velocity(Math.floor((Math.random() * 3) - 1),Math.floor((Math.random() * 3) - 1)), 1), []);
-          break;
-      }
-
-    }
-  }
-
-  return u;
 }
