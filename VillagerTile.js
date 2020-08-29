@@ -48,7 +48,7 @@ export default class VillagerTile extends Component {
     };
 
     return (
-      <View style={styles.container}>
+      <View style={styles.container} onClick={()=>this.props.unit.setTarget([20,20])}>
         <View {...this.panResponder.panHandlers} style={[styles.square, style]}>
           <View style={styles.dude}/>
         </View>
@@ -82,21 +82,24 @@ export default class VillagerTile extends Component {
 
   // When the touch/mouse is lifted
   handlePanResponderEnd = (e, gestureState) => {
-    const { initialTop, initialLeft, progress } = this.state;
+    // const { initialTop, initialLeft, progress } = this.state;
+    // // this.path = this.path.map(p => [(p[0] + (this.props.x * tileSize)), (p[1] + (this.props.y * tileSize))])
+
+    // const targetX = Math.floor(this.path[this.path.length][0]/tileSize)
+    // const targetY = Math.floor(this.path[this.path.length][0]/tileSize)
+
+    // this.props.unit.setTarget(this.path)
+    // console.log('path',JSON.stringify(this.path))
+    // this.path = []
     
-    this.path = this.path.map(p => [p[0] + (this.props.x * tileSize), p[1] + (this.props.y * tileSize)])
-    this.props.unit.setPath(this.path)
-    console.log('path',JSON.stringify(this.path))
-    this.path = []
-    
-    this.setState({
-      dragging: false,
-      initialTop: initialTop + gestureState.dy,
-      initialLeft: initialLeft + gestureState.dx,
-      offsetTop: 0,
-      offsetLeft: 0,
-      progess: []
-    });
+    // this.setState({
+    //   dragging: false,
+    //   initialTop: initialTop + gestureState.dy,
+    //   initialLeft: initialLeft + gestureState.dx,
+    //   offsetTop: 0,
+    //   offsetLeft: 0,
+    //   progess: []
+    // });
   };
 }
 

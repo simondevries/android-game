@@ -4,7 +4,7 @@ import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import VillagerTile from './VillagerTile';
 import { getXYPositionsFromPath } from './helpers';
-
+import pathfinding from 'pathfinding';
 export const tileSize = 30;
 
 export const styles = StyleSheet.create({
@@ -84,7 +84,7 @@ function RenderMap({units}){
 
   return Array.from(Array(mapSize)).map((z, y) => {
     const row = Array.from(Array(mapSize)).map((z1, x)=>{
-        const unit = units.find(u => u.x === x && u.y === y);
+        const unit = units && units.find(u => u && u.x === x && u.y === y);
         if (!unit) {
          return LandTile();
         }
@@ -117,22 +117,51 @@ function RenderMap({units}){
   })
 }
 
+function calculatePathToTarget(unitToMove, units){
+  const impassibleMap = Array.from(Array(mapSize)).map((z, y) => {
+    return Array.from(Array(mapSize)).map((z1, x)=>{
+      if (units && units.find(u => u.x === x && u.y === y)){
+        return 1;
+      }else{
+        return 0;
+      }
+    });
+  });
+
+  var grid = new pathfinding.Grid(impassibleMap);
+  var finder = new pathfinding.AStarFinder({allowDiagonal: true});
+
+  const path = finder.findPath(unitToMove.x, unitToMove.y, unitToMove.target.x, unitToMove.target.y, grid);
+
+  unitToMove.path = path.slice(1)
+  return unitToMove;
+}
+
 function processTick(units, setUnits) {
   const u = units.map(unit => {
-      if(unit instanceof Villager && unit.hasPath()){
-        const vel = unit.velocity;
-        console.log('unit', JSON.stringify(unit))
+      if(unit instanceof Villager){
+       
+        if(unit.target === undefined){
+          return unit;
+        }
+
+        if(unit.target !== undefined && (unit.path === [] || unit.path === undefined || unit.path.length === 0)){
+          unit = calculatePathToTarget(unit, units);
+        }
+
         const newX = unit.path[0][0];
         const newY = unit.path[0][1];
 
-        const hasCollision = units.some(u => (u.x) === newX && (u.y) === newY);
-        // const hasCollision = units.some(u =>  (u.x + u.velocity.x) === newX && (u.y + u.velocity.y) === newY);
+        const hasCollision = units.some(u =>  (u.x) === newX && (u.y) === newY);
 
-        if (!hasCollision){
-          unit.x = newX;
-          unit.y = newY;
-          unit.hasMoved();
+        if(hasCollision){
+          unit.clearPath();
         }
+
+        unit.x = newX;
+        unit.y = newY;
+
+        unit.hasMoved();
       }
 
       return unit;
@@ -184,22 +213,24 @@ class Unit {
 
 class Person extends Unit {
 
-  constructor(hp, x, y, velocity, strength, path) {
+  constructor(hp, x, y, velocity, strength, path, target) {
     super(hp, x, y, velocity);
     this.strength = strength;
     this.path = path;
+    this.target = target;
   }
 
   assignment() {
     console.log('do work')
   }
 
-  setPath(coords) {
-    this.path = getXYPositionsFromPath(coords, this.x, this.y)   
-  };
+  clearPath() { this.path = []; this.target = undefined;}
 
   hasMoved(){
-    this.path = this.path.splice(1, this.path.length - 1)
+    this.path = this.path.slice(1);
+    if(!this.path || this.path.length === 0){
+      this.target = undefined;
+    }
   }
 
   hasPath() {
@@ -259,6 +290,13 @@ class Water extends Resource {
   }
 }
 
+class Point {
+  constructor(x,y){
+    this.x = x;
+    this.y = y;
+  }
+}
+
 function initUnits(){
   let u = [];
   
@@ -310,5 +348,6 @@ function initUnits(){
 
     }
   }
+
   return u;
 }
