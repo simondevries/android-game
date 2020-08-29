@@ -26,26 +26,6 @@ export default function initUnits(){
           case 5:
             u.push(new Villager(1,x,y, 1, []));
             break;
-            break;
-          case 6:
-            u.push(new Villager(1,x,y, 1, []));
-            break;
-            break;
-          case 7:
-            u.push(new Villager(1,x,y, 1), []);
-            break;
-            break;
-          case 8:
-            u.push(new Villager(1,x,y, 1), []);
-            break;
-            break;
-          case 9:
-            u.push(new Villager(1,x,y, 1), []);
-            break;
-            break;
-          case 10:
-            u.push(new Villager(1,x,y, 1), []);
-            break;
         }
       }
     }

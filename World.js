@@ -52,32 +52,32 @@ export const styles = StyleSheet.create({
 
 export const mapSize = 30;
 
-function LandTile() {
-  return <View style={[styles.tile, styles.land]}/>
+function LandTile(cellClicked) {
+  return <View onClick={cellClicked} style={[styles.tile, styles.land]}/>
 }
 
-function StoneTile() {
-  return <View style={[styles.tile, styles.stone]}/>
+function StoneTile(cellClicked) {
+  return <View  onClick={cellClicked} style={[styles.tile, styles.stone]}/>
 }
 
-function GoldTile() {
-  return <View style={[styles.tile, styles.gold]}/>
+function GoldTile(cellClicked) {
+  return <View  onClick={cellClicked} style={[styles.tile, styles.gold]}/>
 }
 
-function FoodTile() {
-  return <View style={[styles.tile, styles.food]}/>
+function FoodTile(cellClicked) {
+  return <View  onClick={cellClicked} style={[styles.tile, styles.food]}/>
 }
 
-function WoodTile() {
-  return  <View style={[styles.tile, styles.wood]}/>
+function WoodTile(cellClicked) {
+  return  <View  onClick={cellClicked} style={[styles.tile, styles.wood]}/>
 }
 
-function WaterTile() {
-  return  <View style={[styles.tile, styles.water]}/>
+function WaterTile(cellClicked) {
+  return  <View  onClick={cellClicked} style={[styles.tile, styles.water]}/>
 }
 
 
-function RenderMap({units}){
+function RenderMap({units, cellClicked}){
   let world = [];
   for (var x = 0; x<= mapSize; x++) {
       world.push(Array(mapSize))
@@ -87,31 +87,31 @@ function RenderMap({units}){
     const row = Array.from(Array(mapSize)).map((z1, x)=>{
         const unit = units && units.find(u => u && u.x === x && u.y === y);
         if (!unit) {
-         return LandTile();
+         return LandTile(cellClicked(x, y));
         }
         if (unit instanceof Stone) {
-          return StoneTile();
+          return StoneTile(cellClicked(x, y));
         }
         if (unit instanceof Gold) {
-          return GoldTile();
+          return GoldTile(cellClicked(x, y));
         }
         if (unit instanceof Wood) {
-          return WoodTile();
+          return WoodTile(cellClicked(x, y));
         }
         if (unit instanceof Food) {
-          return FoodTile();
+          return FoodTile(cellClicked(x, y));
         }
         if (unit instanceof Water) {
-          return WaterTile();
+          return WaterTile(cellClicked(x, y));
         }
         if (unit instanceof Villager) {
-          return <VillagerTile unit={unit} x={x} y={y}/>;
+          return <VillagerTile cellClicked={cellClicked(x, y)} unit={unit} x={x} y={y}/>;
         }
     })
-// asd
+    
     return <View style={styles.world}>
       <View style={styles.row}>
-      {row}
+        {row}
       </View>
     </View>
 
@@ -178,6 +178,7 @@ function processTick(units, setUnits) {
 export default function World() {
 
   const [units, setUnits] = useState(generateMap());
+  const [selectedUnitPosition, setSelectedUnit] = useState();
 
   useEffect(() => {
     window.setInterval(function(){
@@ -185,12 +186,24 @@ export default function World() {
     }, 1000);
   }, []);
 
-
+  const cellClicked = (x, y) => () => {
+    const unitAtSite = units && units.find(u => u && u !== [] && u.x === x &&  u.y === y);
+    const selectedUnit = units && units.find(u => u && u !== [] && selectedUnitPosition && selectedUnitPosition.x === u.x &&  selectedUnitPosition.y === u.y);
+    if(!unitAtSite){
+      return;
+    } else if (!selectedUnit) { 
+      setSelectedUnit(new Point(x, y))
+    }else{
+      if(selectedUnit instanceof Villager && unitAtSite instanceof Resource){
+        selectedUnit.setTarget(new Point(x+1,y))
+      }
+    }
+  }
 
 return (
     <View style={{flex: 1}}>
       {/* <Multitap/> */}
-      <RenderMap units={units}/>
+      <RenderMap units={units} cellClicked={cellClicked}/>
       {/* <WorldWrapper/> */}
     </View>
   );
@@ -217,6 +230,11 @@ export class Person extends Unit {
     this.strength = strength;
     this.path = path;
     this.target = target;
+  }
+
+  setTarget(point){
+    this.target = point;
+    this.path = [];
   }
 
   assignment() {

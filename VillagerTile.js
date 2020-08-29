@@ -48,7 +48,7 @@ export default class VillagerTile extends Component {
     };
 
     return (
-      <View style={styles.container} onClick={()=>this.props.unit.target = new Point(20,20)}>
+      <View style={styles.container} onClick={this.props.cellClicked}>
         <View {...this.panResponder.panHandlers} style={[styles.square, style]}>
           <View style={styles.dude}/>
         </View>
