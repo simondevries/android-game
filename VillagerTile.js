@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Animated, Button,StyleSheet, Text, View ,Dimensions, PanResponder} from 'react-native';
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
-
+import { styles as WorldStyles, tileSize } from './World';
 // export default 
 // function VillagerTile(unit) {
 //   return  <View style={[styles.tile, styles.villager]}>
@@ -15,10 +15,9 @@ import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'r
 export default class VillagerTile extends Component {
   state = {
     dragging: false,
-    initialTop: 50,
-    initialLeft: 50,
     offsetTop: 0,
     offsetLeft: 0,
+    progress: []
   };
 
   panResponder = {};
@@ -32,27 +31,26 @@ export default class VillagerTile extends Component {
       onPanResponderTerminate: this.handlePanResponderEnd,
     });
   }
- progress = []
+  path = []
   render() {
     const {
       dragging,
-      initialTop,
-      initialLeft,
       offsetTop,
       offsetLeft,
     } = this.state;
 
     // Update style with the state of the drag thus far
     const style = {
-      backgroundColor: dragging ? 'skyblue' : 'steelblue',
-      top: initialTop + offsetTop,
-      left: initialLeft + offsetLeft,
+      backgroundColor: dragging ? 'blue' : 'green',
+      top: 0,//offsetTop,
+      left: 0,//  offsetLeft,
+      flex: 1
     };
 
     return (
       <View style={styles.container}>
         <View {...this.panResponder.panHandlers} style={[styles.square, style]}>
-          <Text style={styles.text}>AHAA</Text>
+          <View style={styles.dude}/>
         </View>
       </View>
     );
@@ -72,25 +70,27 @@ export default class VillagerTile extends Component {
   handlePanResponderMove = (e, gestureState) => {
     // Keep track of how far we've moved in total (dx and dy)
 
-    this.progress.push([gestureState.dy,gestureState.dx])
+    this.path.push([gestureState.dx + (this.props.x * tileSize), gestureState.dx + (this.props.y * tileSize)])
     this.setState({
       offsetTop: gestureState.dy,
       offsetLeft: gestureState.dx,
+      // progress: this.state.progess.concat([[gestureState.dx, gestureState.dy]])
     });
   };
 
   // When the touch/mouse is lifted
   handlePanResponderEnd = (e, gestureState) => {
-    const { initialTop, initialLeft } = this.state;
-
-    alert(JSON.stringify(this.progress));
-
+    const { initialTop, initialLeft, progress } = this.state;
+    
+    this.props.unit.move(this.path)
+    
     this.setState({
       dragging: false,
       initialTop: initialTop + gestureState.dy,
       initialLeft: initialLeft + gestureState.dx,
       offsetTop: 0,
       offsetLeft: 0,
+      progess: []
     });
   };
 }
@@ -100,16 +100,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   square: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    width: 80,
-    height: 80,
+    height: tileSize,
+    width: tileSize,
+    position: 'relative',
+    width: tileSize,
+    height: tileSize,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'green'
   },
-  text: {
-    color: 'white',
-    fontSize: 12,
+  dude: {
+    borderRadius: 30,
+    backgroundColor: 'orange',
+    flex: 1,
+    alignItems: 'stretch',
+    alignSelf: 'stretch',
   },
 });

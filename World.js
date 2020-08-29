@@ -27,24 +27,18 @@ export const styles = StyleSheet.create({
   gold: {
     backgroundColor: 'gold'
   },
+  water: {
+    backgroundColor: 'aqua'
+  },
   stone: {
     backgroundColor: 'gray'
   },
   land: {
     backgroundColor: 'green'
   },
-  villager: {
-    backgroundColor: 'green'
-  },
-  dude: {
-    borderRadius: 30,
-    backgroundColor: 'orange',
-    flex: 1,
-    alignItems: 'stretch',
-    alignSelf: 'stretch',
-  },
+
   world: {
-    backgroundColor: 'lightgray'
+    backgroundColor: 'pink'
   },
   row: {
     height: tileSize,
@@ -82,7 +76,6 @@ function WaterTile() {
 
 
 function RenderMap({units}){
-
   let world = [];
   for (var x = 0; x<= mapSize; x++) {
       world.push(Array(mapSize))
@@ -124,8 +117,6 @@ function RenderMap({units}){
 }
 
 function processTick(units, setUnits) {
-  console.log(units.length);
-  
   const u = units.map(unit => {
       if(unit instanceof Villager){
         const vel = unit.velocity;
@@ -186,6 +177,10 @@ class Unit {
   }
 
   onTick() { };
+
+  move(coords) {
+    alert(`yay for ${JSON.stringify(coords)}`)
+  };
 }
 
 class Person extends Unit {
