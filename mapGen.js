@@ -24,11 +24,13 @@ export default function initUnits(){
             u.push(new Food(1,x,y));
             break;
           case 5:
-            u.push(new Villager(1,x,y, 1, []));
+            u.push(new Villager(1,x,y, 1));
             break;
         }
       }
     }
   
+            // u.push(new Stone(1,2,2, ));
+            // u.push(new Villager(1,1,1, 3));
     return u;
   }
