@@ -3,7 +3,7 @@ import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import VillagerTile from './VillagerTile';
-import { getXYPositionsFromPath } from './helpers';
+import { getXYPositionsFromPath, getFreeSpaceAroundCell } from './helpers';
 import pathfinding from 'pathfinding';
 import generateMap from './mapGen';
 export const tileSize = 30;
@@ -42,6 +42,9 @@ export const styles = StyleSheet.create({
   world: {
     backgroundColor: 'pink'
   },
+  townCenter: {
+    backgroundColor: 'purple'
+  },
   row: {
     height: tileSize,
     flexDirection: 'row'
@@ -76,6 +79,10 @@ function WaterTile(cellClicked) {
   return  <View  onClick={cellClicked} style={[styles.tile, styles.water]}/>
 }
 
+function TownCenterTile(cellClicked, unit) {
+return  <View  onClick={cellClicked} style={[styles.tile, styles.townCenter]}><Text>{unit.timeRemainingOnBuild}</Text></View>
+}
+
 
 function RenderMap({units, cellClicked}){
   let world = [];
@@ -106,6 +113,9 @@ function RenderMap({units, cellClicked}){
         }
         if (unit instanceof Villager) {
           return <VillagerTile cellClicked={cellClicked(x, y)} unit={unit} x={x} y={y}/>;
+        }
+        if (unit instanceof TownCenter) {
+          return TownCenterTile(cellClicked(x, y), unit);
         }
     })
     
@@ -171,6 +181,8 @@ function ProcessMovement(unit, units) {
 }
 
 function processTick(units, setUnits, adjustStoneCollected) {
+  let unitsToAdd = [];
+
   const u = units.map(unit => {
     // Process movement
     unit = ProcessMovement(unit, units)
@@ -184,10 +196,57 @@ function processTick(units, setUnits, adjustStoneCollected) {
         }
     }
 
+    // Process buildings
+    if (unit instanceof Building){
+      if (unit.buildQueue !== undefined && unit.buildQueue.length > 0){
+        unit.timeRemainingOnBuild -= 1;
+        if (unit.timeRemainingOnBuild <= 0){
+
+          const freeSpot = getFreeSpaceAroundCell(units, unit.x, unit.y)
+          if (freeSpot !== ''){
+            unit.buildQueue = unit.buildQueue.slice(1);
+            unit.timeRemainingOnBuild = unit.buildQueue.slice(1);
+          }
+          switch (freeSpot){
+            case 'tl':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x - 1, unit.y - 1, 5));
+            break;
+            case 'tc':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x, unit.y - 1, 5));
+            break;
+            case 'tr':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x + 1, unit.y - 1, 5));
+
+            break;
+            case 'cl':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x - 1, unit.y, 5));
+
+            break;
+            case 'cr':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x + 1, unit.y, 5));
+
+            break;
+            case 'bl':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x - 1, unit.y + 1, 5));
+
+            break;
+            case 'bc':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x, unit.y + 1, 5));
+
+            break;
+            case 'br':
+              unitsToAdd = unitsToAdd.concat(new Villager(1, unit.x + 1, unit.y + 1, 5));
+
+            break;
+          }
+        }
+      }
+    }
+
       return unit;
   });
-
-  setUnits(u)
+const newUnits = u.concat(unitsToAdd)
+  setUnits(newUnits)
 }
 
 export default function World() {
@@ -213,6 +272,8 @@ export default function World() {
       if(selectedUnit instanceof Villager && unitAtSite instanceof Resource){
         selectedUnit.setTarget(new Point(x+1,y))
         selectedUnit.collectResources(new Point(x, y))
+      }else if(selectedUnit instanceof TownCenter){
+        selectedUnit.queueVillager()
       }
     }
   }
@@ -305,7 +366,15 @@ export class Villager extends Person {
 }
 
 export class Building extends Unit {
+  constructor(hp, x, y) {
+    super(hp, x, y);
+    this.buildQueue = [];
+    this.timeRemainingOnBuild = 0;
+  }
 
+ addToQueue (b) {
+    this.buildQueue = this.buildQueue.concat([b])
+  }
 }
 
 export class Resource extends Unit {
@@ -320,6 +389,17 @@ export class Resource extends Unit {
     const amountCollecting = Math.ceil(Math.max(0, strength/this.resourceCollectionEffort))
     this.amount -= amountCollecting;
     return amountCollecting;
+  }
+}
+
+export class TownCenter extends Building {
+  constructor(hp, x, y) {
+    super(hp, x, y);
+  }
+
+  queueVillager() {
+    super.addToQueue("Villager");
+    super.timeRemainingOnBuild = 10;
   }
 }
 
