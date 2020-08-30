@@ -41,7 +41,7 @@ export default class VillagerTile extends Component {
 
     // Update style with the state of the drag thus far
     const style = {
-      backgroundColor: dragging ? 'blue' : 'green',
+      backgroundColor: this.props.isSelected ? 'blue' : 'green',
       top: 0,//offsetTop,
       left: 0,//  offsetLeft,
       flex: 1
@@ -63,7 +63,7 @@ export default class VillagerTile extends Component {
 
   // We were granted responder status! Let's update the UI
   handlePanResponderGrant = () => {
-    this.setState({ dragging: true });
+    // this.props.setIsSelected()
   };
 
   // Every time the touch/mouse moves

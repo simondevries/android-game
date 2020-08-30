@@ -81,11 +81,15 @@ function WaterTile(cellClicked) {
 }
 
 function TownCenterTile(cellClicked, unit) {
-return  <View  onClick={cellClicked} style={[styles.tile, styles.townCenter]}><Text>{unit.timeRemainingOnBuild}</Text></View>
+return  <View  onClick={cellClicked} style={[styles.tile, styles.townCenter]}>{unit.timeRemainingOnBuild !== 0 && <Text style={{color: 'white'}}>{unit.timeRemainingOnBuild}</Text>}</View>
 }
 
 
-function RenderMap({units, cellClicked}){
+// const setIsSelected =(dispatch, x,y) => () => {
+//   dispatch({type: selectedUnitPosition, actions})
+// }
+
+function RenderMap({dispatch, units, selectedUnitPosition, cellClicked}){
   let world = [];
   for (var x = 0; x<= mapSize; x++) {
       world.push(Array(mapSize))
@@ -113,7 +117,7 @@ function RenderMap({units, cellClicked}){
           return WaterTile(cellClicked(x, y));
         }
         if (unit instanceof Villager) {
-          return <VillagerTile cellClicked={cellClicked(x, y)} unit={unit} x={x} y={y}/>;
+          return <VillagerTile cellClicked={cellClicked(x, y)} isSelected={selectedUnitPosition && selectedUnitPosition.x === x && selectedUnitPosition.y === y} unit={unit} x={x} y={y}/>;
         }
         if (unit instanceof TownCenter) {
           return TownCenterTile(cellClicked(x, y), unit);
@@ -181,7 +185,7 @@ function ProcessMovement(unit, units) {
   return unit;
 }
 
-function processTick (units, dispatch, adjustStoneCollected) {
+function processTick (units, dispatch, adjustStoneCollected, adjustGoldCollected, adjustFoodCollected, adjustWoodCollected) {
   let unitsToAdd = [];
 
   const u = units.map(unit => {
@@ -192,8 +196,18 @@ function processTick (units, dispatch, adjustStoneCollected) {
     if(unit instanceof Villager && unit.hasAssignment()){
         if (unit.isNextTo(unit.assignmentLocation)){
           const resouceAtLocation = units.find(u => u && u.x === unit.assignmentLocation.x && u.y === unit.assignmentLocation.y && u instanceof Resource);
-          const amountCollected = resouceAtLocation.collect(unit.strength);
-          adjustStoneCollected(amountCollected)
+          if(resouceAtLocation){
+            const amountCollected = resouceAtLocation.collect(unit.strength);
+            if(resouceAtLocation instanceof Stone){
+              adjustStoneCollected(amountCollected)
+            } else if (resouceAtLocation instanceof Gold){
+              adjustGoldCollected(amountCollected)
+            } else if (resouceAtLocation instanceof Food){
+              adjustFoodCollected(amountCollected)
+            } else if (resouceAtLocation instanceof Wood){
+              adjustWoodCollected(amountCollected)
+            } 
+          } 
         }
     }
 
@@ -263,13 +277,12 @@ function reducer(state, action) {
     case 'adjustStone':
       return {...state, resources: {stone: state.resources.stone += action.amount}};
     case 'adjustGold':
-      return {...state, resources: {stone: state.resources.gold += action.amount}};
+      return {...state, resources: {gold: state.resources.gold += action.amount}};
     case 'adjustWood':
-      return {...state, resources: {stone: state.resources.wood += action.amount}};
+      return {...state, resources: {wood: state.resources.wood += action.amount}};
     case 'adjustFood':
-      return {...state, resources: {stone: state.resources.food += action.amount}};
+      return {...state, resources: {food: state.resources.food += action.amount}};
     case 'setUnits':
-      console.log('SU')
       return {...state, units: action.units};
     case 'selectedUnitPosition':
       return {...state, selectedUnitPosition: action.selectedUnitPosition};
@@ -287,7 +300,7 @@ export default function World() {
     const units = generateMap();
     dispatch({type: 'setUnits', units: units})
     const interval = setInterval(() => {
-      processTick(units || state.units, dispatch, adjustStoneCollected)
+      processTick(units || state.units, dispatch, adjustStoneCollected, adjustGoldCollected, adjustFoodCollected, adjustWoodCollected)
       return null;
     }, 1000);
     return () => clearInterval(interval);
@@ -298,17 +311,18 @@ export default function World() {
     const unitAtSite = units && units.find(u => u && u !== [] && u.x === x &&  u.y === y);
     const selectedUnitPosition = state.selectedUnitPosition;
     const selectedUnit = units && units.find(u => u && u !== [] && selectedUnitPosition && selectedUnitPosition.x === u.x &&  selectedUnitPosition.y === u.y);
-    if(!unitAtSite){
-      return;
-    } else if (!selectedUnit) { 
-      dispatch({type: 'selectedUnitPosition', selectedUnitPosition: new Point(x, y)})
-    }else{
-      if(selectedUnit instanceof Villager && unitAtSite instanceof Resource){
-        selectedUnit.setTarget(new Point(x+1,y))
+    if (selectedUnit instanceof Villager) {
+      if(unitAtSite instanceof Resource){
+        selectedUnit.setTarget(new Point(x + 1, y))
         selectedUnit.collectResources(new Point(x, y))
-      }else if(selectedUnit instanceof TownCenter){
-        selectedUnit.queueVillager()
-      }
+        dispatch({type: 'selectedUnitPosition', selectedUnitPosition: new Point(x, y)})
+      } else {
+        selectedUnit.setTarget(new Point(x + 1, y))
+      } 
+    } else if (unitAtSite instanceof TownCenter) {
+      unitAtSite.queueVillager()
+    }else if (selectedUnit === undefined || (selectedUnit instanceof Person === false)) {
+      dispatch({type: 'selectedUnitPosition', selectedUnitPosition: new Point(x, y)})
     }
   }
 
@@ -316,11 +330,29 @@ export default function World() {
     dispatch({type: 'adjustStone', amount: amountToAdjust})
   }
 
+  const adjustFoodCollected = (amountToAdjust) => {
+    dispatch({type: 'adjustFood', amount: amountToAdjust})
+  }
+
+  const adjustWoodCollected = (amountToAdjust) => {
+    dispatch({type: 'adjustWood', amount: amountToAdjust})
+  }
+
+  const adjustGoldCollected = (amountToAdjust) => {
+    dispatch({type: 'adjustGold', amount: amountToAdjust})
+  }
+
 return (
     <View style={{flex: 1}}>
       {/* <Multitap/> */}
-      <RenderMap units={state.units} cellClicked={cellClicked}/>
-      <Text>Stone: {state.resources.stone}</Text>
+      <RenderMap dispatch={dispatch} units={state.units} selectedUnitPosition={state.selectedUnitPosition} cellClicked={cellClicked}/>
+      
+      <View style={{flexDirection: 'row'}}>
+        <Text>Stone: {state.resources.stone}</Text>
+        <Text>Food: {state.resources.food}</Text>
+        <Text>Wood: {state.resources.wood}</Text>
+        <Text>Gold: {state.resources.gold}</Text>
+      </View>
     </View>
   );
 }
