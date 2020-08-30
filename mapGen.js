@@ -13,19 +13,19 @@ export default function initUnits(){
   
         switch(rType){
           case 0:
-            u.push(new Stone(1,x,y));
+            u.push(new Stone(x,y));
             break;
           case 1:
-            u.push(new Gold(1,x,y));
+            u.push(new Gold(x,y));
             break;
           case 2:
             u.push(new Water(1,x,y));
             break;
           case 3:
-            u.push(new Wood(1,x,y));
+            u.push(new Wood(x,y));
             break;
           case 4:
-            u.push(new Food(1,x,y));
+            u.push(new Food(x,y));
             break;
           case 5:
             u.push(new Villager(1,x,y, 1));

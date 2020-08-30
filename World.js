@@ -187,6 +187,7 @@ function ProcessMovement(unit, units) {
 
 function processTick (units, dispatch, adjustStoneCollected, adjustGoldCollected, adjustFoodCollected, adjustWoodCollected) {
   let unitsToAdd = [];
+  let unitsToRemove = [];
 
   const u = units.map(unit => {
     // Process movement
@@ -209,6 +210,13 @@ function processTick (units, dispatch, adjustStoneCollected, adjustGoldCollected
             } 
           } 
         }
+    }
+
+    // Remove spent resources
+    if (unit instanceof Unit){
+      if (unit.hp <= 0){
+        unitsToRemove = unitsToRemove.concat([unit]);
+      }
     }
 
     // Process buildings
@@ -260,7 +268,7 @@ function processTick (units, dispatch, adjustStoneCollected, adjustGoldCollected
 
       return unit;
   });
-  const newUnits = u.concat(unitsToAdd)
+  const newUnits = u.concat(unitsToAdd).filter(u => unitsToRemove && !unitsToRemove.some(utr => utr === u))
 
   dispatch({type:'setUnits', units: newUnits})
 }
@@ -275,13 +283,13 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'adjustStone':
-      return {...state, resources: {stone: state.resources.stone += action.amount}};
+      return {...state, resources: {...state.resources, stone: state.resources.stone += action.amount}};
     case 'adjustGold':
-      return {...state, resources: {gold: state.resources.gold += action.amount}};
+      return {...state, resources: {...state.resources, gold: state.resources.gold += action.amount}};
     case 'adjustWood':
-      return {...state, resources: {wood: state.resources.wood += action.amount}};
+      return {...state, resources: {...state.resources, wood: state.resources.wood += action.amount}};
     case 'adjustFood':
-      return {...state, resources: {food: state.resources.food += action.amount}};
+      return {...state, resources: {...state.resources, food: state.resources.food += action.amount}};
     case 'setUnits':
       return {...state, units: action.units};
     case 'selectedUnitPosition':
@@ -376,6 +384,10 @@ export class Unit {
 
     return acceptableX && acceptableY
   }
+  adjustHp(adjustment){
+    console.log('adjusting hp');
+    this.hp = adjustment;
+  }
 
 }
 
@@ -444,15 +456,14 @@ export class Building extends Unit {
 
 export class Resource extends Unit {
 
-  constructor(hp, x, y, amount, resourceCollectionEffort) {
+  constructor(hp, x, y,  resourceCollectionEffort) {
     super(hp, x, y);
     this.resourceCollectionEffort = resourceCollectionEffort; 
-    this.amount = amount;
   }
 
   collect(strength){
     const amountCollecting = Math.ceil(Math.max(0, strength/this.resourceCollectionEffort))
-    this.amount -= amountCollecting;
+    super.adjustHp(amountCollecting * -1);
     return amountCollecting;
   }
 }
@@ -469,29 +480,29 @@ export class TownCenter extends Building {
 }
 
 export class Wood extends Resource {
-  constructor(hp, x, y) {
-    super(hp, x, y, 100, 2);
+  constructor(x, y) {
+    super(100, x, y, 2);
     this.resourceType = "WOOD";
   }
 }
 
 export class Gold extends Resource {
-  constructor(hp, x, y) {
-    super(hp, x, y, 150, 2.2);
+  constructor(x, y) {
+    super(200, x, y, 2.2);
     this.resourceType = "GOLD";
   }
 }
 
 export class Food extends Resource {
-  constructor(hp, x, y) {
-    super(hp, x, y, 300, 1.5);
+  constructor(x, y) {
+    super(120, x, y, 1.5);
     this.resourceType = "FOOD";
   }
 }
 
 export class Stone extends Resource {
-  constructor(hp, x, y) {
-    super(hp, x, y, 200, 3);
+  constructor(x, y) {
+    super(200, x, y, 3);
     this.resourceType = "STONE";
   }
 }
