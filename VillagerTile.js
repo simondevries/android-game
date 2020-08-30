@@ -50,7 +50,7 @@ export default class VillagerTile extends Component {
     return (
       <View style={styles.container} onClick={this.props.cellClicked}>
         <View {...this.panResponder.panHandlers} style={[styles.square, style]}>
-          <View style={styles.dude}/>
+          <View style={styles.dude}><Text> 👨🏻</Text></View>
         </View>
       </View>
     );

@@ -4,8 +4,9 @@ import React, {Component, useState, useEffect, useReducer } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import VillagerTile from './VillagerTile';
 import { getXYPositionsFromPath, getFreeSpaceAroundCell } from './helpers';
-import pathfinding from 'pathfinding';
 import generateMap from './mapGen';
+import calculatePathToTarget from './PathFinding';
+import useInterval from './interval';
 
 export const tileSize = 30;
 
@@ -22,7 +23,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'red'
   },
   wood: {
-    backgroundColor: 'brown'
+    backgroundColor: 'green'
   },
   food: {
     backgroundColor: 'red'
@@ -61,7 +62,7 @@ function LandTile(cellClicked) {
 }
 
 function StoneTile(cellClicked) {
-  return <View  onClick={cellClicked} style={[styles.tile, styles.stone]}/>
+  return <View  onClick={cellClicked} style={[styles.tile, styles.stone]}><Text>🗿</Text></View>
 }
 
 function GoldTile(cellClicked) {
@@ -73,11 +74,11 @@ function FoodTile(cellClicked) {
 }
 
 function WoodTile(cellClicked) {
-  return  <View  onClick={cellClicked} style={[styles.tile, styles.wood]}/>
+  return  <View  onClick={cellClicked} style={[styles.tile, styles.wood]}><Text style={{fontSize: '15pt'}}>🌳</Text></View>
 }
 
 function WaterTile(cellClicked) {
-  return  <View  onClick={cellClicked} style={[styles.tile, styles.water]}/>
+  return  <View  onClick={cellClicked} style={[styles.tile, styles.water]}><Text>🌊</Text></View>
 }
 
 function TownCenterTile(cellClicked, unit) {
@@ -133,25 +134,7 @@ function RenderMap({dispatch, units, selectedUnitPosition, cellClicked}){
   })
 }
 
-function calculatePathToTarget(unitToMove, units){
-  const impassibleMap = Array.from(Array(mapSize)).map((z, y) => {
-    return Array.from(Array(mapSize)).map((z1, x)=>{
-      if (units && units.find(u => u.x === x && u.y === y)){
-        return 1;
-      }else{
-        return 0;
-      }
-    });
-  });
 
-  var grid = new pathfinding.Grid(impassibleMap);
-  var finder = new pathfinding.AStarFinder({allowDiagonal: true});
-
-  const path = finder.findPath(unitToMove.x, unitToMove.y, unitToMove.target.x, unitToMove.target.y, grid);
-
-  unitToMove.path = path.slice(1)
-  return unitToMove;
-}
 function ProcessMovement(unit, units) {
   if(unit instanceof Person){
        
@@ -307,12 +290,13 @@ export default function World() {
   useEffect(() => {
     const units = generateMap();
     dispatch({type: 'setUnits', units: units})
-    const interval = setInterval(() => {
-      processTick(units || state.units, dispatch, adjustStoneCollected, adjustGoldCollected, adjustFoodCollected, adjustWoodCollected)
-      return null;
-    }, 1000);
-    return () => clearInterval(interval);
   }, []);
+
+
+  useInterval(() => {
+    const units = state.units;
+    processTick(units || state.units, dispatch, adjustStoneCollected, adjustGoldCollected, adjustFoodCollected, adjustWoodCollected)
+  }, 1000)
 
   const cellClicked = (x, y) => () => {
     const units = state.units;
@@ -385,7 +369,6 @@ export class Unit {
     return acceptableX && acceptableY
   }
   adjustHp(adjustment){
-    console.log('adjusting hp');
     this.hp = adjustment;
   }
 
