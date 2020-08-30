@@ -108,11 +108,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   square: {
-    height: tileSize,
-    width: tileSize,
+    height: 30,
+    width: 30,
     position: 'relative',
-    width: tileSize,
-    height: tileSize,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'green'

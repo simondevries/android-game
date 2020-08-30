@@ -3,6 +3,7 @@ import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native
 import React, {Component, useState, useEffect } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import WorldWrapper from './WorldWrapper';
+import World from './World';
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
 const circleRadius = 30;

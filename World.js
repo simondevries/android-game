@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { Animated, Button,StyleSheet, Text, View ,Dimensions} from 'react-native';
-import React, {Component, useState, useEffect } from 'react';
+import React, {Component, useState, useEffect, useReducer } from 'react';
 import { LongPressGestureHandler, TapGestureHandler, PanGestureHandler } from 'react-native-gesture-handler';
 import VillagerTile from './VillagerTile';
 import { getXYPositionsFromPath, getFreeSpaceAroundCell } from './helpers';
 import pathfinding from 'pathfinding';
 import generateMap from './mapGen';
+
 export const tileSize = 30;
 
 export const styles = StyleSheet.create({
@@ -180,7 +181,7 @@ function ProcessMovement(unit, units) {
   return unit;
 }
 
-function processTick(units, setUnits, adjustStoneCollected) {
+function processTick (units, dispatch, adjustStoneCollected) {
   let unitsToAdd = [];
 
   const u = units.map(unit => {
@@ -245,29 +246,62 @@ function processTick(units, setUnits, adjustStoneCollected) {
 
       return unit;
   });
-const newUnits = u.concat(unitsToAdd)
-  setUnits(newUnits)
+  const newUnits = u.concat(unitsToAdd)
+
+  dispatch({type:'setUnits', units: newUnits})
 }
+
+const initialState = {
+  resources: {
+    stone: 0, gold: 0, wood: 0, food: 200},
+    selectedUnitPosition: undefined,
+    units: []
+  };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'adjustStone':
+      return {...state, resources: {stone: state.resources.stone += action.amount}};
+    case 'adjustGold':
+      return {...state, resources: {stone: state.resources.gold += action.amount}};
+    case 'adjustWood':
+      return {...state, resources: {stone: state.resources.wood += action.amount}};
+    case 'adjustFood':
+      return {...state, resources: {stone: state.resources.food += action.amount}};
+    case 'setUnits':
+      console.log('SU')
+      return {...state, units: action.units};
+    case 'selectedUnitPosition':
+      return {...state, selectedUnitPosition: action.selectedUnitPosition};
+    default:
+      throw new Error();
+  }
+}
+
 
 export default function World() {
 
-  const [units, setUnits] = useState(generateMap());
-  const [selectedUnitPosition, setSelectedUnit] = useState();
-  const [amountOfStone, setAmountOfStone] = useState(0);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    window.setInterval(function(){
-      processTick(units, setUnits, adjustStoneCollected)
+    const units = generateMap();
+    dispatch({type: 'setUnits', units: units})
+    const interval = setInterval(() => {
+      processTick(units || state.units, dispatch, adjustStoneCollected)
+      return null;
     }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const cellClicked = (x, y) => () => {
+    const units = state.units;
     const unitAtSite = units && units.find(u => u && u !== [] && u.x === x &&  u.y === y);
+    const selectedUnitPosition = state.selectedUnitPosition;
     const selectedUnit = units && units.find(u => u && u !== [] && selectedUnitPosition && selectedUnitPosition.x === u.x &&  selectedUnitPosition.y === u.y);
     if(!unitAtSite){
       return;
     } else if (!selectedUnit) { 
-      setSelectedUnit(new Point(x, y))
+      dispatch({type: 'selectedUnitPosition', selectedUnitPosition: new Point(x, y)})
     }else{
       if(selectedUnit instanceof Villager && unitAtSite instanceof Resource){
         selectedUnit.setTarget(new Point(x+1,y))
@@ -279,15 +313,14 @@ export default function World() {
   }
 
   const adjustStoneCollected = (amountToAdjust) => {
-    const newAmount=  amountOfStone + amountToAdjust;
-    setAmountOfStone(newAmount);
+    dispatch({type: 'adjustStone', amount: amountToAdjust})
   }
 
 return (
     <View style={{flex: 1}}>
       {/* <Multitap/> */}
-      <RenderMap units={units} cellClicked={cellClicked}/>
-      <Text>Stone: {amountOfStone}</Text>
+      <RenderMap units={state.units} cellClicked={cellClicked}/>
+      <Text>Stone: {state.resources.stone}</Text>
     </View>
   );
 }
