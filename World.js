@@ -305,7 +305,7 @@ export default function World() {
     const selectedUnit = units && units.find(u => u && u !== [] && selectedUnitPosition && selectedUnitPosition.x === u.x &&  selectedUnitPosition.y === u.y);
     if (selectedUnit instanceof Villager) {
       if(unitAtSite instanceof Resource){
-        selectedUnit.setTarget(new Point(x + 1, y))
+        selectedUnit.setTarget(new Point(x, y))
         selectedUnit.collectResources(new Point(x, y))
         dispatch({type: 'selectedUnitPosition', selectedUnitPosition: new Point(x, y)})
       } else {
@@ -369,7 +369,7 @@ export class Unit {
     return acceptableX && acceptableY
   }
   adjustHp(adjustment){
-    this.hp = adjustment;
+    this.hp = this.hp += adjustment;
   }
 
 }

@@ -7,8 +7,11 @@ export default function calculatePathToTarget(unitToMove, units){
       return Array.from(Array(mapSize)).map((z1, x)=>{
 
         if(unitToMove.target.x === x && unitToMove.target.y === y){
-          return 0;
+          if(units && units.find(u => u.x === x && u.y === y)){
+            return 0;
+          }
         }
+        
 
         if (units && units.find(u => u.x === x && u.y === y)){
           return 1;
