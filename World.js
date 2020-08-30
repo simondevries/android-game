@@ -7,7 +7,7 @@ import { getXYPositionsFromPath, getFreeSpaceAroundCell } from './helpers';
 import generateMap from './mapGen';
 import calculatePathToTarget from './PathFinding';
 import useInterval from './interval';
-
+import BuildMenu from './BuildMenu';
 export const tileSize = 30;
 
 export const styles = StyleSheet.create({
@@ -345,6 +345,7 @@ return (
         <Text>Wood: {state.resources.wood}</Text>
         <Text>Gold: {state.resources.gold}</Text>
       </View>
+      <BuildMenu x={12} y={4}/>
     </View>
   );
 }
